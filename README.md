@@ -1,2 +1,1 @@
-# mlops-platform
-Production-ready MLOps platform for training, deploying and monitoring ML models
+feat: initial setup of MLOps platform with README
