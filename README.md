@@ -1,1 +1,15 @@
-feat: initial setup of MLOps platform with README
+COPY /data/kurulum/akgv2/.env* /data/kurulum/akgv2/
+COPY /data/kurulum/code/.env* /data/kurulum/code/
+COPY /data/kurulum/codehelper/.env* /data/kurulum/codehelper/
+COPY /data/kurulum/ikuzmani/.env* /data/kurulum/ikuzmani/
+COPY /data/kurulum/kisiseluzman/.env* /data/kurulum/kisiseluzman/
+COPY /data/kurulum/magi-core-services/.env* /data/kurulum/magi-core-services/
+COPY /data/kurulum/magi-servicesapi/.env* /data/kurulum/magi-servicesapi/
+COPY /data/kurulum/monitoring/.env* /data/kurulum/monitoring/
+COPY /data/kurulum/openwebui/.env* /data/kurulum/openwebui/
+COPY /data/kurulum/portal/.env* /data/kurulum/portal/
+COPY /data/kurulum/resume/.env* /data/kurulum/resume/
+COPY /data/kurulum/summarizer/.env* /data/kurulum/summarizer/
+COPY /data/kurulum/talk-to-doc/.env* /data/kurulum/talk-to-doc/
+COPY /data/kurulum/toplantiuzmani/.env* /data/kurulum/toplantiuzmani/
+COPY /data/kurulum/translator/.env* /data/kurulum/translator/
