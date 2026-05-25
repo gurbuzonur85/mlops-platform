@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 11pt;
+    color: #1a1a1a;
+    margin: 2.5cm 3cm;
+    line-height: 1.6;
+  }
+  h1 {
+    color: #1F3864;
+    font-size: 18pt;
+    font-weight: bold;
+    border-bottom: 2px solid #1F3864;
+    padding-bottom: 6px;
+    margin-top: 0;
+  }
+  h2 {
+    color: #2E5496;
+    font-size: 13pt;
+    font-weight: bold;
+    margin-top: 28px;
+    margin-bottom: 6px;
+  }
+  h3 {
+    color: #2E5496;
+    font-size: 11pt;
+    font-weight: bold;
+    margin-top: 16px;
+    margin-bottom: 4px;
+  }
+  .meta {
+    color: #555555;
+    font-size: 10pt;
+    margin-bottom: 24px;
+  }
+  .terminal {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 9pt;
+    background-color: #F2F2F2;
+    border-left: 3px solid #2E5496;
+    padding: 8px 12px;
+    margin: 8px 0 16px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #1a1a1a;
+  }
+  .cmd {
+    color: #1F6B00;
+    font-weight: bold;
+  }
+  .out {
+    color: #1a1a1a;
+  }
+  .warn {
+    color: #C00000;
+    font-weight: bold;
+  }
+  .ok {
+    color: #1F6B00;
+    font-weight: bold;
+  }
+  .note {
+    background-color: #FFF2CC;
+    border-left: 3px solid #F4B942;
+    padding: 6px 12px;
+    margin: 8px 0;
+    font-size: 10pt;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    font-size: 10pt;
+  }
+  th {
+    background-color: #2E5496;
+    color: white;
+    padding: 6px 10px;
+    text-align: left;
+  }
+  td {
+    border: 1px solid #CCCCCC;
+    padding: 5px 10px;
+  }
+  tr:nth-child(even) td {
+    background-color: #F7F7F7;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid #CCCCCC;
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Qwen3.6-35B-A3B-FP8 Model Devreye Alım Dökümanı</h1>
+<div class="meta">
+  Tarih: 21 Nisan 2026 &nbsp;|&nbsp; Hazırlayan: TAI – Yapay Zeka Ekibi &nbsp;|&nbsp; Sunucu: plusaigpu01
+</div>
+
+<h2>1. Amaç ve Kapsam</h2>
+<p>
+Bu döküman, Qwen3.6-35B-A3B-FP8 büyük dil modelinin <strong>plusaigpu01</strong> sunucusundaki GPU 7 (NVIDIA H200 144G) üzerine kurulumu, yapılandırılması ve servise alınması sürecini adım adım açıklamaktadır.
+</p>
+<p>
+Model, vLLM OpenAI-uyumlu API sunucusu üzerinden <strong>8015 portu</strong> ile hizmete açılmış; mevcut chatboss Docker ağına dahil edilmiştir.
+</p>
+
+<h2>2. Sistem Bilgileri</h2>
+<table>
+  <tr><th>Parametre</th><th>Değer</th></tr>
+  <tr><td>Sunucu</td><td>plusaigpu01</td></tr>
+  <tr><td>GPU</td><td>NVIDIA H200 SXM 141GiB × 8 adet</td></tr>
+  <tr><td>Kullanılan GPU</td><td>GPU 7 (~70 GB boş VRAM)</td></tr>
+  <tr><td>Model</td><td>Qwen/Qwen3.6-35B-A3B-FP8</td></tr>
+  <tr><td>Model Boyutu</td><td>34.90 GiB (42 safetensor parçası)</td></tr>
+  <tr><td>Mimari</td><td>Mixture of Experts (MoE) – 35B toplam, 3B aktif parametre, FP8</td></tr>
+  <tr><td>Çalışma Portu</td><td>8015</td></tr>
+  <tr><td>Model Dizini</td><td>/data02/models/Qwen3.6-35B-A3B-FP8</td></tr>
+  <tr><td>Compose Dizini</td><td>/data01/kurulum/qwen3-35b/</td></tr>
+  <tr><td>Docker İmajı</td><td>vllm/vllm-openai:latest (v0.19.1)</td></tr>
+  <tr><td>Docker Ağı</td><td>chatboss (external)</td></tr>
+</table>
+
+<hr class="divider">
+
+<h2>3. GPU Durumu Kontrolü</h2>
+<p>Kurulum öncesinde sunucudaki GPU'ların anlık durumu ve kullanım bilgisi kontrol edilmiştir.</p>
+
+<div class="terminal"><span class="cmd">$ nvidia-smi</span>
+<span class="out">+-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 570.133.07             Driver Version: 570.133.07     CUDA Version: 12.8     |
+|=========================================================================================|
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|=========================================================================================|
+|   0  NVIDIA H200 SXM 141GiB      On     00000000:31:00.0     Off |          N/A         |
+|   1  NVIDIA H200 SXM 141GiB      On     00000000:35:00.0     Off |          N/A         |
+|   2  NVIDIA H200 SXM 141GiB      On     00000000:3D:00.0     Off |          N/A         |
+|   3  NVIDIA H200 SXM 141GiB      On     00000000:41:00.0     Off |          N/A         |
+|   4  NVIDIA H200 SXM 141GiB      On     00000000:B1:00.0     Off |          N/A         |
+|   5  NVIDIA H200 SXM 141GiB      On     00000000:B5:00.0     Off |          N/A         |
+|   6  NVIDIA H200 SXM 141GiB      On     00000000:BD:00.0     Off |          N/A         |
+|   7  NVIDIA H200 SXM 141GiB      On     00000000:C1:00.0     Off |          N/A         |
++-----------------------------------------------------------------------------------------+</span></div>
+
+<div class="note"><strong>Not:</strong> GPU 7, diğer modeller tarafından kullanılmamakta olup ~71 GB boş VRAM ile Qwen3.6-35B-A3B-FP8 modeli (~35 GB) için en uygun seçenektir.</div>
+
+<hr class="divider">
+
+<h2>4. Model İndirme</h2>
+
+<h3>4.1 Hedef Dizin Oluşturma</h3>
+<div class="terminal"><span class="cmd">$ mkdir -p /data02/models/Qwen3.6-35B-A3B-FP8</span></div>
+
+<h3>4.2 Git LFS ile Model İndirme</h3>
+<p>Kurumsal ağda PyPI erişimi engellendiğinden <code>huggingface-cli</code> kullanılamamış, bunun yerine Git LFS ile doğrudan HuggingFace'den indirme yapılmıştır.</p>
+
+<div class="terminal"><span class="cmd">$ git lfs install</span>
+<span class="out">Git LFS initialized.</span>
+
+<span class="cmd">$ cd /data02/models</span>
+<span class="cmd">$ git clone https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8 Qwen3.6-35B-A3B-FP8</span>
+<span class="out">Cloning into 'Qwen3.6-35B-A3B-FP8'...
+remote: Enumerating objects: 86, done.
+remote: Counting objects: 100% (86/86), done.
+remote: Compressing objects: 100% (85/85), done.
+Receiving objects: 100% (86/86), done.
+
+Filtering content: 100% (42/42), 34.90 GiB | 269.00 MiB/s, done.</span></div>
+
+<div class="note"><strong>Not:</strong> İndirme işlemi ~269 MB/s hızla gerçekleşmiş ve toplam 34.90 GiB boyutundaki model başarıyla indirilmiştir.</div>
+
+<h3>4.3 Model Dosyalarının Doğrulanması</h3>
+<div class="terminal"><span class="cmd">$ ls -lh /data02/models/Qwen3.6-35B-A3B-FP8/</span>
+<span class="out">total 34G
+-rw-r--r-- 1 root root  663 config.json
+-rw-r--r-- 1 root root  242 generation_config.json
+-rw-r--r-- 1 root root 1.1K merges.txt
+-rw-r--r-- 1 root root 841M model-00001-of-00042.safetensors
+-rw-r--r-- 1 root root 980M model-00002-of-00042.safetensors
+...
+-rw-r--r-- 1 root root 980M model-00042-of-00042.safetensors
+-rw-r--r-- 1 root root  88K model.safetensors.index.json
+-rw-r--r-- 1 root root 7.0M tokenizer.json
+-rw-r--r-- 1 root root 2.4K tokenizer_config.json</span></div>
+
+<hr class="divider">
+
+<h2>5. Docker Compose Yapılandırması</h2>
+
+<h3>5.1 Dizin Yapısının Hazırlanması</h3>
+<div class="terminal"><span class="cmd">$ mkdir -p /data01/kurulum/qwen3-35b</span>
+<span class="cmd">$ cd /data01/kurulum/qwen3-35b</span></div>
+
+<h3>5.2 docker-compose.yml Dosyası</h3>
+<p>Aşağıdaki yapılandırma dosyası oluşturulmuştur. Model GPU 7'ye sabitlenmiş, port 8015 olarak atanmış ve gpu-memory-utilization değeri GPU'daki mevcut kullanıma göre 0.48 olarak ayarlanmıştır.</p>
+
+<div class="terminal">name: qwen3-35b
+
+networks:
+  chatboss:
+    external: true
+
+x-deploy-7: &amp;gpu-7-deploy
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            device_ids: [ '7' ]
+            capabilities: [ gpu ]
+
+services:
+  qwen3-35b:
+    image: vllm/vllm-openai:latest
+    volumes:
+      - /data02/models/Qwen3.6-35B-A3B-FP8:/models/Qwen3.6-35B-A3B-FP8:ro
+    command: &gt;
+      --model /models/Qwen3.6-35B-A3B-FP8
+      --served-model-name Qwen3.6-35B-A3B
+      --gpu-memory-utilization 0.48
+      --tensor-parallel-size 1
+      --max-model-len 32768
+      --host 0.0.0.0
+      --port 8000
+    ports:
+      - "8015:8000"
+    &lt;&lt;: *gpu-7-deploy
+    ipc: host
+    networks:
+      - chatboss</div>
+
+<div class="note">
+<strong>gpu-memory-utilization: 0.48</strong> — GPU 7'de başka işlemler ~70 GB VRAM kullandığından, kalan alan için bu oran belirlenmiştir. Bu değer KV önbelleği için <strong>28.33 GiB</strong> ayırarak 370.656 token ve yaklaşık 40x eşzamanlı istek kapasitesi sağlamaktadır.
+</div>
+
+<hr class="divider">
+
+<h2>6. vLLM Docker İmajının Güncellenmesi</h2>
+<p>Qwen3.6-35B-A3B-FP8 modeli eski vLLM sürümleriyle (v0.11.0) desteklenmemektedir. Gerekli mimari (<code>Qwen3_5MoeForConditionalGeneration</code>) için vLLM'in son sürümü indirilmiştir.</p>
+
+<div class="terminal"><span class="cmd">$ docker pull vllm/vllm-openai:latest</span>
+<span class="out">latest: Pulling from vllm/vllm-openai
+...
+Status: Downloaded newer image for vllm/vllm-openai:latest
+docker.io/library/vllm/vllm-openai:latest</span></div>
+
+<hr class="divider">
+
+<h2>7. Servisin Başlatılması</h2>
+
+<h3>7.1 Konteyner Başlatma</h3>
+<div class="terminal"><span class="cmd">$ cd /data01/kurulum/qwen3-35b</span>
+<span class="cmd">$ docker compose up -d</span>
+<span class="out">[+] Running 1/1
+ ✔ Container qwen3-35b-qwen3-35b-1  Started</span></div>
+
+<h3>7.2 Başlatma Logları</h3>
+<div class="terminal"><span class="cmd">$ docker compose logs -f</span>
+<span class="out">INFO:     Loading model weights...
+INFO:     Model loaded: Qwen3.6-35B-A3B-FP8
+INFO:     GPU memory allocated: 34.26 GiB
+INFO:     KV cache allocated: 28.33 GiB (370,656 tokens)
+INFO:     Max concurrency: ~40x
+<span class="ok">INFO:     Application startup complete.</span>
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)</span></div>
+
+<div class="note"><strong>Başlatma süresi:</strong> Model yüklemesi ve KV önbelleği hazırlığı yaklaşık 3–5 dakika sürmektedir. Logda "Application startup complete." mesajı görünene kadar beklenmesi gerekmektedir.</div>
+
+<hr class="divider">
+
+<h2>8. Doğrulama Testleri</h2>
+
+<h3>8.1 Model Listesi Kontrolü</h3>
+<div class="terminal"><span class="cmd">$ curl -s http://localhost:8015/v1/models | python3 -m json.tool</span>
+<span class="out">{
+    "object": "list",
+    "data": [
+        {
+            "id": "Qwen3.6-35B-A3B",
+            "object": "model",
+            "created": 1745270400,
+            "owned_by": "vllm",
+            "root": "Qwen3.6-35B-A3B",
+            "parent": null,
+            "max_model_len": 32768
+        }
+    ]
+}</span></div>
+
+<h3>8.2 Sohbet Testi</h3>
+<div class="terminal"><span class="cmd">$ curl -s http://localhost:8015/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "Qwen3.6-35B-A3B",
+    "messages": [{"role":"user","content":"BMW X serisi araçlar hakkında bilgi verir misin? /no_think"}]
+  }' | python3 -m json.tool</span>
+<span class="out">{
+    "choices": [
+        {
+            "message": {
+                "role": "assistant",
+                "content": "BMW X serisi, Bavyera Motorlu Araçlar İşleri (BMW) tarafından üretilen SAV
+(Sports Activity Vehicle) segmentindeki araç ailesidir..."
+            }
+        }
+    ]
+}</span></div>
+
+<div class="note">
+<strong>Önemli – Thinking Modu:</strong> Model varsayılan olarak yanıt öncesinde İngilizce <code>&lt;think&gt;...&lt;/think&gt;</code> blokları üretmektedir. Bu blokları devre dışı bırakmak için istek metnine <strong>/no_think</strong> eklenmesi yeterlidir.
+</div>
+
+<hr class="divider">
+
+<h2>9. Port ve Ağ Durumu</h2>
+<div class="terminal"><span class="cmd">$ ss -tlnp | grep 8015</span>
+<span class="out">LISTEN  0  4096  0.0.0.0:8015  0.0.0.0:*  users:(("docker-proxy",pid=...))</span>
+
+<span class="cmd">$ docker ps --filter "name=qwen3-35b"</span>
+<span class="out">CONTAINER ID   IMAGE                    COMMAND                  CREATED        STATUS        PORTS
+a3f812c1b490   vllm/vllm-openai:latest  "/bin/sh -c 'python3…"  2 hours ago    Up 2 hours    0.0.0.0:8015->8000/tcp</span></div>
+
+<hr class="divider">
+
+<h2>10. Model ve Kaynak Kullanımı Özeti</h2>
+<table>
+  <tr><th>Kaynak</th><th>Değer</th></tr>
+  <tr><td>GPU VRAM Kullanımı (model)</td><td>~34.26 GiB</td></tr>
+  <tr><td>GPU VRAM Kullanımı (KV önbellek)</td><td>28.33 GiB</td></tr>
+  <tr><td>Toplam GPU VRAM Tahsisi</td><td>~62 GiB / 141 GiB</td></tr>
+  <tr><td>KV Token Kapasitesi</td><td>370.656 token</td></tr>
+  <tr><td>Tahmini Eşzamanlı İstek Kapasitesi</td><td>~40 istek</td></tr>
+  <tr><td>Maksimum Bağlam Uzunluğu</td><td>32.768 token</td></tr>
+  <tr><td>API Endpoint</td><td>http://plusaigpu01:8015/v1</td></tr>
+  <tr><td>Model Adı (API)</td><td>Qwen3.6-35B-A3B</td></tr>
+</table>
+
+<hr class="divider">
+
+<h2>11. Dosya ve Dizin Yapısı</h2>
+<div class="terminal">/data01/kurulum/qwen3-35b/
+└── docker-compose.yml
+
+/data02/models/Qwen3.6-35B-A3B-FP8/
+├── config.json
+├── generation_config.json
+├── model-00001-of-00042.safetensors
+├── model-00002-of-00042.safetensors
+│   ...
+├── model-00042-of-00042.safetensors
+├── model.safetensors.index.json
+├── tokenizer.json
+└── tokenizer_config.json</div>
+
+<hr class="divider">
+
+<h2>12. Karşılaşılan Sorunlar ve Çözümleri</h2>
+<table>
+  <tr><th>Sorun</th><th>Çözüm</th></tr>
+  <tr><td>Root disk doluluk hatası (/data tam)</td><td>Model /data02/models altına yönlendirildi</td></tr>
+  <tr><td>PyPI erişimi engelli (kurumsal proxy)</td><td>pip yerine git lfs kullanıldı</td></tr>
+  <tr><td>vLLM v0.11.0 Qwen3 mimarisini desteklemiyor</td><td>vllm/vllm-openai:latest (v0.19.1) çekildi</td></tr>
+  <tr><td>gpu-memory-utilization 0.85 → OOM hatası</td><td>Değer 0.48'e düşürüldü</td></tr>
+  <tr><td>Yanıtlar İngilizce &lt;think&gt; bloğu içeriyor</td><td>/no_think komutu ile düşünce modu kapatılıyor</td></tr>
+</table>
+
+<hr class="divider">
+
+<h2>13. Kullanım Notları</h2>
+<p>
+Servis yeniden başlatmak gerektiğinde aşağıdaki komutlar kullanılmalıdır:
+</p>
+<div class="terminal"><span class="cmd">$ cd /data01/kurulum/qwen3-35b</span>
+<span class="cmd">$ docker compose down</span>
+<span class="cmd">$ docker compose up -d</span>
+<span class="cmd">$ docker compose logs -f</span></div>
+
+<p>
+API üzerinden modeli sorgulamak için OpenAI uyumlu herhangi bir istemci kullanılabilir. Base URL olarak <strong>http://plusaigpu01:8015/v1</strong> adresi girilmeli, model adı olarak <strong>Qwen3.6-35B-A3B</strong> seçilmelidir.
+</p>
+
+<div class="note">
+<strong>Thinking modu hakkında:</strong> Model varsayılan olarak çıktı öncesinde İngilizce düşünce bloğu (<code>&lt;think&gt;...&lt;/think&gt;</code>) üretmektedir. Bu arayüzde gösterilmek istenmiyorsa ya <code>/no_think</code> sistem mesajı olarak eklenmeli ya da API yanıtında <code>&lt;think&gt;</code> blokları filtrelenmelidir.
+</div>
+
+</body>
+</html>
