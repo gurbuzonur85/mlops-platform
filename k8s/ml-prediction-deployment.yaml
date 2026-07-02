@@ -23,7 +23,7 @@ spec:
         # rolls the Deployment.
         # IfNotPresent lets Docker Desktop's k8s reuse a locally-built image
         # of the same tag without forcing a registry pull.
-        image: ghcr.io/gurbuzonur85/mlops-platform/ml-prediction:77b6227
+        image: ghcr.io/gurbuzonur85/mlops-platform/ml-prediction:f2ce8e3
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
