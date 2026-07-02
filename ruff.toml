@@ -5,3 +5,6 @@
 [lint.per-file-ignores]
 "train_iris_model.py" = ["E402"]
 "train_advertising_model.py" = ["E402"]
+# local_run.py sets SQLALCHEMY_DATABASE_URL before importing database.py,
+# so an env assignment intentionally precedes the imports.
+"local_run.py" = ["E402"]

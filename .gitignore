@@ -8,3 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local demo artefacts (run_local_demo.bat / local_run.py)
+local_demo.db
+.env

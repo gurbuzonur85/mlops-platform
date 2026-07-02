@@ -3,14 +3,10 @@ name: CI/CD
 on:
   push:
     branches: [main]
-    paths:
-      - '23_k8s_cicd_monitoring/**'
-      - '.github/workflows/ci.yaml'
   pull_request:
-    paths:
-      - '23_k8s_cicd_monitoring/**'
 
-# Allow the update-manifest job to commit back the bumped SHA tag.
+# contents: write  -> update-manifest job can commit the bumped tag back
+# packages: write  -> build-and-push job can push the image to GHCR
 permissions:
   contents: write
   packages: write
@@ -24,15 +20,13 @@ jobs:
   # ────────────────────────────────────────────────────────────────
   lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: 23_k8s_cicd_monitoring
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install ruff
+      # Pin ruff to the version validated locally so CI matches the dev box.
+      - run: pip install ruff==0.15.20
       - run: ruff check .
 
   # ────────────────────────────────────────────────────────────────
@@ -64,7 +58,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: 23_k8s_cicd_monitoring
+          context: .
           push: true
           tags: |
             ${{ env.IMAGE }}:latest
@@ -83,27 +77,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Need full history so the push back includes a real merge base.
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bump image tag in deployment manifest
         run: |
-          cd 23_k8s_cicd_monitoring
           SHA="${{ needs.build-and-push.outputs.short_sha }}"
           IMAGE="${{ env.IMAGE }}"
-
-          # Replace whatever tag is currently on the ml-prediction image with
-          # the freshly-pushed short SHA. We anchor on the image name so we
-          # don't accidentally edit anything else.
           sed -i -E "s#(image: ${IMAGE//\//\\/}):.*#\1:${SHA}#" k8s/ml-prediction-deployment.yaml
-
           echo "--- diff ---"
           git diff k8s/ml-prediction-deployment.yaml
 
       - name: Commit and push
         run: |
-          cd 23_k8s_cicd_monitoring
           if git diff --quiet k8s/ml-prediction-deployment.yaml; then
             echo "No tag change — image already at this SHA."
             exit 0
@@ -111,5 +97,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add k8s/ml-prediction-deployment.yaml
-          git commit -m "chore(23_k8s_cicd_monitoring): bump image to ${{ needs.build-and-push.outputs.short_sha }} [skip ci]"
+          git commit -m "chore: bump image to ${{ needs.build-and-push.outputs.short_sha }} [skip ci]"
           git push
